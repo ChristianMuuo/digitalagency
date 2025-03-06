@@ -1,0 +1,138 @@
+<?php
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "user_auth";
+
+// Create connection
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+// Check connection
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    if (isset($_POST['action']) && $_POST['action'] == 'register' && isset($_POST['full_name']) && isset($_POST['email']) && isset($_POST['password'])) {
+        // Registration logic
+        $fullName = $_POST['full_name'];
+        $email = $_POST['email'];
+        route
+        $password = $_POST['password'];
+
+        // Use prepared statements to prevent SQL injection
+        $stmt = $conn->prepare("INSERT INTO users (full_name, email, password) VALUES (?, ?, ?)");
+        $stmt->bind_param("sss", $fullName, $email, $password);
+
+        if ($stmt->execute()) {
+            echo "New record created successfully";
+            // Redirect to login page
+            header("Location: login.php");
+            exit();
+        } else {
+            echo "Error: " . $stmt->error;
+        }
+        $stmt->close();
+    } else if (isset($_POST['action']) && $_POST['action'] == 'login' && isset($_POST['email']) && isset($_POST['password'])) {
+        // Login logic
+        $email = $_POST['email'];
+        $password = $_POST['password'];
+
+        // Use prepared statements to prevent SQL injection
+        $stmt = $conn->prepare("SELECT id, full_name, password FROM users WHERE email=?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $stmt->store_result();
+
+        if ($stmt->num_rows > 0) {
+            $stmt->bind_result($id, $fullName, $hashedPassword);
+            $stmt->fetch();
+            if ($password == $hashedPassword) {
+                header(sw"Location: home.html");
+                exit();
+            } else {
+                echo "Invalid password.";
+            }
+        } else {
+            echo "No user found with this email.";
+        }
+        $stmt->close();
+    } else {
+        echo "Invalid form submission.";
+    }
+
+    $conn->close();
+}
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login & Registration</title>
+  <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,500" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
+  <link rel="stylesheet" href="./loginjsstyle/style.css">
+</head>
+<body>
+<section class="user">
+  <div class="user_options-container">
+    <div class="user_options-text">
+      <div class="user_options-unregistered">
+        <h2 class="user_unregistered-title">Don't have an account?</h2>
+        <p class="user_unregistered-text">Sign up to create an account.</p>
+        <button class="user_unregistered-signup" id="signup-button">Sign up</button>
+      </div>
+      <div class="user_options-registered">
+        <h2 class="user_registered-title">Have an account?</h2>
+        <p class="user_registered-text">Log in to access your account.</p>
+        <button class="user_registered-login" id="login-button">Login</button>
+      </div>
+    </div>
+    <div class="user_options-forms" id="user_options-forms">
+      <div class="user_forms-login">
+        <h2 class="forms_title">Login</h2>
+        <form class="forms_form" action="login.php" method="POST">
+          <fieldset class="forms_fieldset">
+            <div class="forms_field">
+              <input type="email" name="email" placeholder="Email" class="forms_field-input" required autofocus />
+            </div>
+            <div class="forms_field">
+              <input type="password" name="password" placeholder="Password" class="forms_field-input" required />
+            </div>
+            <input type="hidden" name="action" value="login">
+          </fieldset>
+          <div class="forms_buttons">
+            <button type="button" class="forms_buttons-forgot">Forgot password?</button>
+            <input type="submit" value="Log In" class="forms_buttons-action">
+          </div>
+        </form>
+      </div>
+      <div class="user_forms-signup">
+        <h2 class="forms_title">Sign Up</h2>
+        <form class="forms_form" action="login.php" method="POST">
+          <fieldset class="forms_fieldset">
+            <div class="forms_field">
+              <input type="text" name="full_name" placeholder="Full Name" class="forms_field-input" required />
+            </div>
+            <div class="forms_field">
+              <input type="email" name="email" placeholder="Email" class="forms_field-input" required />
+            </div>
+            <div class="forms_field">
+              <input type="password" name="password" placeholder="Password" class="forms_field-input" required />
+            </div>
+            <input type="hidden" name="action" value="register">
+          </fieldset>
+          <div class="forms_buttons">
+            <input type="submit" value="Sign up" class="forms_buttons-action">
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+<script src="./loginjsstyle/script.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"></script>
+<script src="js/script.js"></script>
+</body>
+</html>
